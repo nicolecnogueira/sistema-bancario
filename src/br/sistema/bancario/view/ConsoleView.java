@@ -18,6 +18,7 @@ public class ConsoleView {
         while (opcao != 0) {
             System.out.println("\n=== SISTEMA BANCÁRIO ===");
             System.out.println("1. Cadastrar Conta");
+            System.out.println("2. Consultar Saldo");
             System.out.println("0. Sair");
             System.out.print("Escolha uma opção: ");
 
@@ -28,6 +29,9 @@ public class ConsoleView {
                 switch (opcao) {
                     case 1:
                         cadastrarContaView();
+                        break;
+                    case 2:
+                        consultarSaldoView();
                         break;
                     case 0:
                         System.out.println("Saindo do sistema...");
@@ -48,5 +52,11 @@ public class ConsoleView {
 
         String mensagem = controller.cadastrarConta(numero);
         System.out.println(mensagem);
+    }
+
+    private void consultarSaldoView() {
+        System.out.print("Digite o número da conta para consulta: ");
+        String numero = scanner.nextLine();
+        System.out.println(controller.consultarSaldo(numero));
     }
 }
