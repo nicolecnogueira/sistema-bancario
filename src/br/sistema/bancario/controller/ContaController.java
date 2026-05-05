@@ -53,4 +53,21 @@ public class ContaController {
 
         return "Erro: Conta não encontrada.";
     }
+
+    public String transferir(String origem, String destino, double valor) {
+        Optional<Conta> contaOrigem = repository.buscarPorNumero(origem);
+        Optional<Conta> contaDestino = repository.buscarPorNumero(destino);
+
+        if (contaOrigem.isEmpty()) {
+            return "Erro: Conta de origem não encontrada.";
+        }
+        if (contaDestino.isEmpty()) {
+            return "Erro: Conta de destino não encontrada.";
+        }
+
+        contaOrigem.get().debitar(valor);
+        contaDestino.get().creditar(valor);
+
+        return "Sucesso! Transferência de R$ " + String.format("%.2f", valor) + " realizada com sucesso.";
+    }
 }

@@ -21,6 +21,7 @@ public class ConsoleView {
             System.out.println("2. Consultar Saldo");
             System.out.println("3. Crédito");
             System.out.println("4. Débito");
+            System.out.println("5. Transferência");
             System.out.println("0. Sair");
             System.out.print("Escolha uma opção: ");
 
@@ -40,6 +41,9 @@ public class ConsoleView {
                         break;
                     case 4:
                         debitarView();
+                        break;
+                    case 5:
+                        transferirView();
                         break;
                     case 0:
                         System.out.println("Saindo do sistema...");
@@ -86,5 +90,17 @@ public class ConsoleView {
         scanner.nextLine();
 
         System.out.println(controller.debitar(numero, valor));
+    }
+
+    private void transferirView() {
+        System.out.print("Digite o número da conta de origem: ");
+        String origem = scanner.nextLine();
+        System.out.print("Digite o número da conta de destino: ");
+        String destino = scanner.nextLine();
+        System.out.print("Digite o valor da transferência: ");
+        double valor = scanner.nextDouble();
+        scanner.nextLine();
+
+        System.out.println(controller.transferir(origem, destino, valor));
     }
 }
