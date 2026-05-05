@@ -19,6 +19,7 @@ public class ConsoleView {
             System.out.println("\n=== SISTEMA BANCÁRIO ===");
             System.out.println("1. Cadastrar Conta");
             System.out.println("2. Consultar Saldo");
+            System.out.println("3. Credito");
             System.out.println("0. Sair");
             System.out.print("Escolha uma opção: ");
 
