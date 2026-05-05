@@ -20,4 +20,8 @@ public class Conta {
     public void setSaldo(double saldo) {
         this.saldo = saldo;
     }
+
+    public void creditar(double valor) {
+        this.saldo += valor;
+    }
 }

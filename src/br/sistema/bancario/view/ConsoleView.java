@@ -33,6 +33,9 @@ public class ConsoleView {
                     case 2:
                         consultarSaldoView();
                         break;
+                    case 3:
+                        creditarView();
+                        break;
                     case 0:
                         System.out.println("Saindo do sistema...");
                         break;
@@ -58,5 +61,15 @@ public class ConsoleView {
         System.out.print("Digite o número da conta para consulta: ");
         String numero = scanner.nextLine();
         System.out.println(controller.consultarSaldo(numero));
+    }
+
+    private void creditarView() {
+        System.out.print("Digite o número da conta: ");
+        String numero = scanner.nextLine();
+        System.out.print("Digite o valor do crédito: ");
+        double valor = scanner.nextDouble();
+        scanner.nextLine();
+
+        System.out.println(controller.creditar(numero, valor));
     }
 }
