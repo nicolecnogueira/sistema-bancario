@@ -19,7 +19,8 @@ public class ConsoleView {
             System.out.println("\n=== SISTEMA BANCÁRIO ===");
             System.out.println("1. Cadastrar Conta");
             System.out.println("2. Consultar Saldo");
-            System.out.println("3. Credito");
+            System.out.println("3. Crédito");
+            System.out.println("4. Débito");
             System.out.println("0. Sair");
             System.out.print("Escolha uma opção: ");
 
@@ -36,6 +37,9 @@ public class ConsoleView {
                         break;
                     case 3:
                         creditarView();
+                        break;
+                    case 4:
+                        debitarView();
                         break;
                     case 0:
                         System.out.println("Saindo do sistema...");
@@ -72,5 +76,15 @@ public class ConsoleView {
         scanner.nextLine();
 
         System.out.println(controller.creditar(numero, valor));
+    }
+
+    private void debitarView() {
+        System.out.print("Digite o número da conta: ");
+        String numero = scanner.nextLine();
+        System.out.print("Digite o valor do débito: ");
+        double valor = scanner.nextDouble();
+        scanner.nextLine();
+
+        System.out.println(controller.debitar(numero, valor));
     }
 }

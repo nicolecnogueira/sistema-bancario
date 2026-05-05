@@ -42,4 +42,15 @@ public class ContaController {
 
         return "Erro: Conta não encontrada.";
     }
+
+    public String debitar(String numero, double valor) {
+        Optional<Conta> conta = repository.buscarPorNumero(numero);
+
+        if (conta.isPresent()) {
+            conta.get().debitar(valor);
+            return "Sucesso! Débito de R$ " + String.format("%.2f", valor) + " realizado.";
+        }
+
+        return "Erro: Conta não encontrada.";
+    }
 }
