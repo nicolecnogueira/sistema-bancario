@@ -47,6 +47,10 @@ public class ContaController {
         Optional<Conta> conta = repository.buscarPorNumero(numero);
 
         if (conta.isPresent()) {
+            if (conta.get().getSaldo() < valor) {
+                return "Erro: Saldo insuficiente.";
+            }
+
             conta.get().debitar(valor);
             return "Sucesso! Débito de R$ " + String.format("%.2f", valor) + " realizado.";
         }
@@ -63,6 +67,10 @@ public class ContaController {
         }
         if (contaDestino.isEmpty()) {
             return "Erro: Conta de destino não encontrada.";
+        }
+
+        if (contaOrigem.get().getSaldo() < valor) {
+            return "Erro: Saldo insuficiente na conta de origem.";
         }
 
         contaOrigem.get().debitar(valor);
