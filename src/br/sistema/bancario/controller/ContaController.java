@@ -2,8 +2,10 @@ package br.sistema.bancario.controller;
 
 import br.sistema.bancario.model.Conta;
 import br.sistema.bancario.model.ContaBonus;
+import br.sistema.bancario.model.ContaPoupanca;
 import br.sistema.bancario.repository.ContaRepository;
 
+import java.util.List;
 import java.util.Optional;
 
 public class ContaController {
@@ -96,5 +98,25 @@ public class ContaController {
         }
 
         return "Transferência realizada.";
+    }
+
+    public String cadastrarContaPoupanca(String numero) {
+        if (repository.buscarPorNumero(numero).isPresent()) {
+            return "Erro: Conta já cadastrada.";
+        }
+        repository.salvar(new ContaPoupanca(numero));
+        return "Sucesso! Conta Poupança " + numero + " criada.";
+    }
+
+    public String renderJuros(double taxa) {
+        List<Conta> contas = repository.listarTodas();
+        int aplicadas = 0;
+        for (Conta c : contas) {
+            if (c instanceof ContaPoupanca) {
+                ((ContaPoupanca) c).renderJuros(taxa);
+                aplicadas++;
+            }
+        }
+        return "Juros de " + taxa + "% aplicados em " + aplicadas + " conta(s) poupança.";
     }
 }

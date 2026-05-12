@@ -18,4 +18,8 @@ public class ContaRepository {
                 .filter(c -> c.getNumero().equals(numero))
                 .findFirst();
     }
+
+    public List<Conta> listarTodas() {
+        return contas;
+    }
 }
