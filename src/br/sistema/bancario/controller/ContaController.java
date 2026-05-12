@@ -33,6 +33,8 @@ public class ContaController {
     }
 
     public String creditar(String numero, double valor) {
+        if (valor <= 0) return "Erro: valor deve maior que zero.";
+
         Optional<Conta> conta = repository.buscarPorNumero(numero);
 
         if (conta.isPresent()) {
@@ -44,6 +46,8 @@ public class ContaController {
     }
 
     public String debitar(String numero, double valor) {
+        if (valor <= 0) return "Erro: valor deve maior que zero.";
+
         Optional<Conta> conta = repository.buscarPorNumero(numero);
 
         if (conta.isPresent()) {
@@ -59,6 +63,8 @@ public class ContaController {
     }
 
     public String transferir(String origem, String destino, double valor) {
+        if (valor <= 0) return "Erro: valor deve maior que zero.";
+
         Optional<Conta> contaOrigem = repository.buscarPorNumero(origem);
         Optional<Conta> contaDestino = repository.buscarPorNumero(destino);
 
