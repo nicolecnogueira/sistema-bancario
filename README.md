@@ -9,3 +9,17 @@ Projeto desenvolvido para a disciplina de Gerência de Configuração e Mudança
 ## Stack de Desenvolvimento
 * **Linguagem de Programação:** Java
 * **Framework:** Spring Boot
+
+## Como Executar o Sistema
+
+1.  Certifique-se de ter o **JDK 17** ou superior instalado.
+2.  Clone o repositório.
+3.  Navegue até a pasta `src`.
+4.  Compile o projeto:
+    ```bash
+    javac br/sistema/bancario/App.java
+    ```
+5.  Execute a aplicação:
+    ```bash
+    java br.sistema.bancario.App
+    ```
