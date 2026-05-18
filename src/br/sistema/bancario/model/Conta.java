@@ -6,6 +6,7 @@ public class Conta {
 
     public Conta(String numero, double saldoInicial) {
         this.numero = numero;
+        this.saldo = 0.0;
         this.saldo = saldoInicial;
     }
 
