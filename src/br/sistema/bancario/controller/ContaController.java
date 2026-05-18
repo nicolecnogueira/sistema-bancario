@@ -63,19 +63,13 @@ public class ContaController {
 
     public String debitar(String numero, double valor) {
         if (valor <= 0) return "Erro: valor deve maior que zero.";
-
         Optional<Conta> conta = repository.buscarPorNumero(numero);
+        if (conta.isEmpty()) return "Erro: Conta não encontrada.";
 
-        if (conta.isPresent()) {
-            if (conta.get().getSaldo() < valor) {
-                return "Erro: Saldo insuficiente.";
-            }
-
-            conta.get().debitar(valor);
-            return "Sucesso! Débito de R$ " + String.format("%.2f", valor) + " realizado.";
+        if (!conta.get().debitar(valor)) {
+            return "Erro: operacao excede limite minimo de saldo (R$ -1000,00).";
         }
-
-        return "Erro: Conta não encontrada.";
+        return "Sucesso! Débito de R$ " + String.format("%.2f", valor) + " realizado.";
     }
 
     public String transferir(String origem, String destino, double valor) {
@@ -95,7 +89,10 @@ public class ContaController {
             return "Erro: Saldo insuficiente na conta de origem.";
         }
 
-        contaOrigem.get().debitar(valor);
+        if (!contaOrigem.get().debitar(valor)) {
+            return "Erro: transferencia excede limite minimo de saldo (R$ -1000,00) na origem.";
+        }
+
         contaDestino.get().creditar(valor);
 
         if (contaDestino.get() instanceof ContaBonus) {
