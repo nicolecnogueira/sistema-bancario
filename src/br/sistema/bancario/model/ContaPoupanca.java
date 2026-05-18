@@ -2,8 +2,9 @@ package br.sistema.bancario.model;
 
 public class ContaPoupanca extends Conta {
 
-    public ContaPoupanca(String numero) {
+    public ContaPoupanca(String numero, double saldoInicial) {
         super(numero);
+        setSaldo(saldoInicial);
     }
 
     public void renderJuros(double taxa) {

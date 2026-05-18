@@ -106,12 +106,14 @@ public class ContaController {
         return "Transferência realizada.";
     }
 
-    public String cadastrarContaPoupanca(String numero) {
+    public String cadastrarContaPoupanca(String numero, double saldoInicial) {
         if (repository.buscarPorNumero(numero).isPresent()) {
             return "Erro: Conta já cadastrada.";
         }
-        repository.salvar(new ContaPoupanca(numero));
-        return "Sucesso! Conta Poupança " + numero + " criada.";
+
+        repository.salvar(new ContaPoupanca(numero, saldoInicial));
+        return "Sucesso! Conta Poupança " + numero + " criada com saldo R$ "
+                + String.format("%.2f", saldoInicial) + ".";
     }
 
     public String renderJuros(double taxa) {

@@ -76,7 +76,10 @@ public class ConsoleView {
                 mensagem = controller.cadastrarContaBonus(numero);
                 break;
             case 3:
-                mensagem = controller.cadastrarContaPoupanca(numero);
+                System.out.print("Digite o saldo inicial da poupanca: ");
+                double saldoInicial = scanner.nextDouble();
+                scanner.nextLine();
+                mensagem = controller.cadastrarContaPoupanca(numero, saldoInicial);
                 break;
             default:
                 mensagem = controller.cadastrarConta(numero);
