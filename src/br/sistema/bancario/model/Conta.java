@@ -4,9 +4,10 @@ public class Conta {
     private String numero;
     private double saldo;
 
-    public Conta(String numero) {
+    public Conta(String numero, double saldoInicial) {
         this.numero = numero;
         this.saldo = 0.0;
+        this.saldo = saldoInicial;
     }
 
     public String getNumero() {

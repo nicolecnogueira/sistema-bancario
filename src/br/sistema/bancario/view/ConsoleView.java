@@ -65,6 +65,7 @@ public class ConsoleView {
     private void cadastrarContaView() {
         System.out.print("Digite o número da nova conta: ");
         String numero = scanner.nextLine();
+        Double saldoInicial = 0.0;
         System.out.println("Tipo de conta: 1 Simples, 2 Bônus, 3 poupança");
         System.out.print("Escolha o tipo: ");
         int tipo = scanner.nextInt();
@@ -73,13 +74,13 @@ public class ConsoleView {
         String mensagem;
         switch (tipo) {
             case 2:
-                mensagem = controller.cadastrarContaBonus(numero);
+                mensagem = controller.cadastrarContaBonus(numero, saldoInicial);
                 break;
             case 3:
-                mensagem = controller.cadastrarContaPoupanca(numero);
+                mensagem = controller.cadastrarContaPoupanca(numero, saldoInicial);
                 break;
             default:
-                mensagem = controller.cadastrarConta(numero);
+                mensagem = controller.cadastrarConta(numero, saldoInicial);
         }
         System.out.println(mensagem);
     }

@@ -5,6 +5,7 @@ import br.sistema.bancario.model.ContaBonus;
 import br.sistema.bancario.model.ContaPoupanca;
 import br.sistema.bancario.repository.ContaRepository;
 
+import java.nio.DoubleBuffer;
 import java.util.List;
 import java.util.Optional;
 
@@ -15,21 +16,22 @@ public class ContaController {
         this.repository = repository;
     }
 
-    public String cadastrarConta(String numero) {
+    public String cadastrarConta(String numero, double saldoInicial) {
         if (repository.buscarPorNumero(numero).isPresent()) {
             return "Erro! Já existe conta com número " + numero;
         }
 
-        Conta novaConta = new Conta(numero);
+        Conta novaConta = new Conta(numero, saldoInicial);
         repository.salvar(novaConta);
-        return "Sucesso! Conta " + numero + " criada, saldo inicial de R$ 0.0!";
+        return "Sucesso! Conta " + numero + " criada com saldo inicial de R$ "
+                + String.format("%.2f", saldoInicial) + "!";
     }
 
-    public String cadastrarContaBonus(String numero) {
+    public String cadastrarContaBonus(String numero, Double saldoInicial) {
         if (repository.buscarPorNumero(numero).isPresent()) {
             return "Erro: Conta já cadastrada.";
         }
-        repository.salvar(new ContaBonus(numero));
+        repository.salvar(new ContaBonus(numero, saldoInicial));
         return "Sucesso! Conta Bônus " + numero + " criada com 10 pontos.";
     }
 
@@ -106,11 +108,11 @@ public class ContaController {
         return "Transferência realizada.";
     }
 
-    public String cadastrarContaPoupanca(String numero) {
+    public String cadastrarContaPoupanca(String numero, Double saldoInicial) {
         if (repository.buscarPorNumero(numero).isPresent()) {
             return "Erro: Conta já cadastrada.";
         }
-        repository.salvar(new ContaPoupanca(numero));
+        repository.salvar(new ContaPoupanca(numero, saldoInicial));
         return "Sucesso! Conta Poupança " + numero + " criada.";
     }
 
