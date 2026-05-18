@@ -1,8 +1,11 @@
 package br.sistema.bancario.controller;
 
 import br.sistema.bancario.model.Conta;
+import br.sistema.bancario.model.ContaBonus;
+import br.sistema.bancario.model.ContaPoupanca;
 import br.sistema.bancario.repository.ContaRepository;
 
+import java.util.List;
 import java.util.Optional;
 
 public class ContaController {
@@ -22,6 +25,14 @@ public class ContaController {
         return "Sucesso! Conta " + numero + " criada, saldo inicial de R$ 0.0!";
     }
 
+    public String cadastrarContaBonus(String numero) {
+        if (repository.buscarPorNumero(numero).isPresent()) {
+            return "Erro: Conta já cadastrada.";
+        }
+        repository.salvar(new ContaBonus(numero));
+        return "Sucesso! Conta Bônus " + numero + " criada com 10 pontos.";
+    }
+
     public String consultarSaldo(String numero) {
         Optional<Conta> conta = repository.buscarPorNumero(numero);
 
@@ -35,11 +46,16 @@ public class ContaController {
     public String creditar(String numero, double valor) {
         if (valor <= 0) return "Erro: valor deve maior que zero.";
 
-        Optional<Conta> conta = repository.buscarPorNumero(numero);
+        Optional<Conta> contaOpt = repository.buscarPorNumero(numero);
+        if (contaOpt.isPresent()) {
+            Conta conta = contaOpt.get();
+            conta.creditar(valor);
 
-        if (conta.isPresent()) {
-            conta.get().creditar(valor);
-            return "Sucesso! Crédito de R$ " + String.format("%.2f", valor) + " realizado.";
+            if (conta instanceof ContaBonus) {
+                int pontos = (int) (valor / 100);
+                ((ContaBonus) conta).adicionarPontos(pontos);
+            }
+            return "Crédito realizado com sucesso.";
         }
 
         return "Erro: Conta não encontrada.";
@@ -68,11 +84,11 @@ public class ContaController {
         Optional<Conta> contaOrigem = repository.buscarPorNumero(origem);
         Optional<Conta> contaDestino = repository.buscarPorNumero(destino);
 
-        if (contaOrigem.isEmpty()) {
-            return "Erro: Conta de origem não encontrada.";
+        if (contaOrigem.isEmpty() || contaDestino.isEmpty()) {
+            return "Erro: Uma das contas não existe.";
         }
-        if (contaDestino.isEmpty()) {
-            return "Erro: Conta de destino não encontrada.";
+        if (contaOrigem.get().getSaldo() < valor) {
+            return "Erro: Saldo insuficiente na origem.";
         }
 
         if (contaOrigem.get().getSaldo() < valor) {
@@ -82,6 +98,31 @@ public class ContaController {
         contaOrigem.get().debitar(valor);
         contaDestino.get().creditar(valor);
 
-        return "Sucesso! Transferência de R$ " + String.format("%.2f", valor) + " realizada com sucesso.";
+        if (contaDestino.get() instanceof ContaBonus) {
+            int pontos = (int) (valor / 200);
+            ((ContaBonus) contaDestino.get()).adicionarPontos(pontos);
+        }
+
+        return "Transferência realizada.";
+    }
+
+    public String cadastrarContaPoupanca(String numero) {
+        if (repository.buscarPorNumero(numero).isPresent()) {
+            return "Erro: Conta já cadastrada.";
+        }
+        repository.salvar(new ContaPoupanca(numero));
+        return "Sucesso! Conta Poupança " + numero + " criada.";
+    }
+
+    public String renderJuros(double taxa) {
+        List<Conta> contas = repository.listarTodas();
+        int aplicadas = 0;
+        for (Conta c : contas) {
+            if (c instanceof ContaPoupanca) {
+                ((ContaPoupanca) c).renderJuros(taxa);
+                aplicadas++;
+            }
+        }
+        return "Juros de " + taxa + "% aplicados em " + aplicadas + " conta(s) poupança.";
     }
 }

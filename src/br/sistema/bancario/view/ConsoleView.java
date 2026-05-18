@@ -22,6 +22,7 @@ public class ConsoleView {
             System.out.println("3. Crédito");
             System.out.println("4. Débito");
             System.out.println("5. Transferência");
+            System.out.println("6. Render Juros");
             System.out.println("0. Sair");
             System.out.print("Escolha uma opção: ");
 
@@ -45,6 +46,9 @@ public class ConsoleView {
                     case 5:
                         transferirView();
                         break;
+                    case 6:
+                        renderJurosView();
+                        break;
                     case 0:
                         System.out.println("Saindo do sistema...");
                         break;
@@ -61,8 +65,22 @@ public class ConsoleView {
     private void cadastrarContaView() {
         System.out.print("Digite o número da nova conta: ");
         String numero = scanner.nextLine();
+        System.out.println("Tipo de conta: 1 Simples, 2 Bônus, 3 poupança");
+        System.out.print("Escolha o tipo: ");
+        int tipo = scanner.nextInt();
+        scanner.nextLine();
 
-        String mensagem = controller.cadastrarConta(numero);
+        String mensagem;
+        switch (tipo) {
+            case 2:
+                mensagem = controller.cadastrarContaBonus(numero);
+                break;
+            case 3:
+                mensagem = controller.cadastrarContaPoupanca(numero);
+                break;
+            default:
+                mensagem = controller.cadastrarConta(numero);
+        }
         System.out.println(mensagem);
     }
 
@@ -102,5 +120,12 @@ public class ConsoleView {
         scanner.nextLine();
 
         System.out.println(controller.transferir(origem, destino, valor));
+    }
+
+    private void renderJurosView() {
+        System.out.print("Informe a taxa de juros (%): ");
+        double taxa = scanner.nextDouble();
+        scanner.nextLine();
+        System.out.println(controller.renderJuros(taxa));
     }
 }
