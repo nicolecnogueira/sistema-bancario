@@ -99,7 +99,7 @@ public class ContaController {
         contaDestino.get().creditar(valor);
 
         if (contaDestino.get() instanceof ContaBonus) {
-            int pontos = (int) (valor / 200);
+            int pontos = (int) (valor / 150);
             ((ContaBonus) contaDestino.get()).adicionarPontos(pontos);
         }
 
