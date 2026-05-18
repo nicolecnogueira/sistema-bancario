@@ -12,14 +12,15 @@ public class ContaController {
         this.repository = repository;
     }
 
-    public String cadastrarConta(String numero) {
+    public String cadastrarConta(String numero, double saldoInicial) {
         if (repository.buscarPorNumero(numero).isPresent()) {
             return "Erro! Já existe conta com número " + numero;
         }
 
-        Conta novaConta = new Conta(numero);
+        Conta novaConta = new Conta(numero, saldoInicial);
         repository.salvar(novaConta);
-        return "Sucesso! Conta " + numero + " criada, saldo inicial de R$ 0.0!";
+        return "Sucesso! Conta " + numero + " criada com saldo inicial de R$ "
+                + String.format("%.2f", saldoInicial) + "!";
     }
 
     public String consultarSaldo(String numero) {

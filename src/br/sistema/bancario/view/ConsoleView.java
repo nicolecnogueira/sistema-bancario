@@ -61,8 +61,11 @@ public class ConsoleView {
     private void cadastrarContaView() {
         System.out.print("Digite o número da nova conta: ");
         String numero = scanner.nextLine();
+        System.out.print("Digite o saldo inicial: ");
+        double saldoInicial = scanner.nextDouble();
+        scanner.nextLine();
 
-        String mensagem = controller.cadastrarConta(numero);
+        String mensagem = controller.cadastrarConta(numero, saldoInicial);
         System.out.println(mensagem);
     }
 
