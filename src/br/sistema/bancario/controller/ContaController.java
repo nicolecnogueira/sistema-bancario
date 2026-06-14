@@ -124,4 +124,29 @@ public class ContaController {
         }
         return "Juros de " + taxa + "% aplicados em " + aplicadas + " conta(s) poupança.";
     }
+
+    public String consultarDadosConta(String numero) {
+    Optional<Conta> contaOpt = repository.buscarPorNumero(numero);
+
+    if (contaOpt.isEmpty()) {
+        return "Erro: Conta não encontrada.";
+    }
+
+    Conta conta = contaOpt.get();
+    String tipo = "Simples";
+    String infoAdicional = "";
+
+    if (conta instanceof ContaBonus) {
+        tipo = "Bônus";
+        infoAdicional = "\nPontuação: " + ((ContaBonus) conta).getPontuacao() + " pontos";
+    } else if (conta instanceof ContaPoupanca) {
+        tipo = "Poupança";
+    }
+
+    return "--- DADOS DA CONTA ---" +
+           "\nTipo: " + tipo +
+           "\nNúmero: " + conta.getNumero() +
+           "\nSaldo: R$ " + String.format("%.2f", conta.getSaldo()) +
+           infoAdicional;
+}
 }

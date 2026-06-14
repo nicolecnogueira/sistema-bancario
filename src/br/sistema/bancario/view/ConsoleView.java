@@ -23,6 +23,7 @@ public class ConsoleView {
             System.out.println("4. Débito");
             System.out.println("5. Transferência");
             System.out.println("6. Render Juros");
+            System.out.println("7. Consultar Dados da Conta");
             System.out.println("0. Sair");
             System.out.print("Escolha uma opção: ");
 
@@ -48,6 +49,9 @@ public class ConsoleView {
                         break;
                     case 6:
                         renderJurosView();
+                        break;
+                    case 7:
+                        consultarDadosContaView();
                         break;
                     case 0:
                         System.out.println("Saindo do sistema...");
@@ -131,4 +135,10 @@ public class ConsoleView {
         scanner.nextLine();
         System.out.println(controller.renderJuros(taxa));
     }
+
+    private void consultarDadosContaView() {
+    System.out.print("Digite o número da conta para consultar os dados: ");
+    String numero = scanner.nextLine();
+    System.out.println(controller.consultarDadosConta(numero));
+}
 }
