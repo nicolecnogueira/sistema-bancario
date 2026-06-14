@@ -1,15 +1,18 @@
 package br.sistema.bancario.view;
 
-import br.sistema.bancario.controller.ContaController;
+import br.sistema.bancario.model.Conta;
+import br.sistema.bancario.model.ContaBonus;
+import br.sistema.bancario.model.ContaPoupanca;
+import br.sistema.bancario.service.ContaService;
 
 import java.util.Scanner;
 
 public class ConsoleView {
-    private ContaController controller;
-    private Scanner scanner;
+    private final ContaService contaService;
+    private final Scanner scanner;
 
-    public ConsoleView(ContaController controller) {
-        this.controller = controller;
+    public ConsoleView(ContaService contaService) {
+        this.contaService = contaService;
         this.scanner = new Scanner(System.in);
     }
 
@@ -26,119 +29,139 @@ public class ConsoleView {
             System.out.println("7. Consultar Dados da Conta");
             System.out.println("0. Sair");
             System.out.print("Escolha uma opção: ");
-
-            if (scanner.hasNextInt()) {
+            
+            try {
                 opcao = scanner.nextInt();
                 scanner.nextLine();
 
                 switch (opcao) {
-                    case 1:
-                        cadastrarContaView();
-                        break;
-                    case 2:
-                        consultarSaldoView();
-                        break;
-                    case 3:
-                        creditarView();
-                        break;
-                    case 4:
-                        debitarView();
-                        break;
-                    case 5:
-                        transferirView();
-                        break;
-                    case 6:
-                        renderJurosView();
-                        break;
-                    case 7:
-                        consultarDadosContaView();
-                        break;
-                    case 0:
-                        System.out.println("Saindo do sistema...");
-                        break;
-                    default:
-                        System.out.println("Opção inválida! Tente novamente.");
+                    case 1: cadastrarContaView(); break;
+                    case 2: consultarSaldoView(); break;
+                    case 3: creditarView(); break;
+                    case 4: debitarView(); break;
+                    case 5: transferirView(); break;
+                    case 6: renderJurosView(); break;
+                    case 7: consultarDadosContaView(); break;
+                    case 0: System.out.println("Saindo..."); break;
+                    default: System.out.println("Opção inválida.");
                 }
-            } else {
-                System.out.println("Entrada inválida! Digite um número.");
+            } catch (Exception e) {
+                System.out.println("Entrada inválida.");
                 scanner.nextLine();
             }
         }
     }
 
     private void cadastrarContaView() {
-        System.out.print("Digite o número da nova conta: ");
-        String numero = scanner.nextLine();
-        System.out.println("Tipo de conta: 1 Simples, 2 Bônus, 3 poupança");
-        System.out.print("Escolha o tipo: ");
-        int tipo = scanner.nextInt();
-        scanner.nextLine();
+        try {
+            System.out.print("Digite o número da conta: ");
+            String numero = scanner.nextLine();
+            System.out.println("Tipo: 1-Simples, 2-Bônus, 3-Poupança");
+            int tipo = scanner.nextInt();
+            scanner.nextLine();
 
-        String mensagem;
-        switch (tipo) {
-            case 2:
-                mensagem = controller.cadastrarContaBonus(numero);
-                break;
-            case 3:
-                System.out.print("Digite o saldo inicial da poupanca: ");
-                double saldoInicial = scanner.nextDouble();
+            if (tipo == 2) {
+                contaService.cadastrarContaBonus(numero);
+                System.out.println("Conta Bônus criada.");
+            } else if (tipo == 3) {
+                System.out.print("Saldo inicial: ");
+                double saldo = scanner.nextDouble();
                 scanner.nextLine();
-                mensagem = controller.cadastrarContaPoupanca(numero, saldoInicial);
-                break;
-            default:
-                mensagem = controller.cadastrarConta(numero);
+                contaService.cadastrarContaPoupanca(numero, saldo);
+                System.out.println("Conta Poupança criada.");
+            } else {
+                contaService.cadastrarConta(numero);
+                System.out.println("Conta Simples criada.");
+            }
+        } catch (IllegalArgumentException e) {
+            System.out.println(e.getLocalizedMessage());
         }
-        System.out.println(mensagem);
     }
 
     private void consultarSaldoView() {
-        System.out.print("Digite o número da conta para consulta: ");
-        String numero = scanner.nextLine();
-        System.out.println(controller.consultarSaldo(numero));
+        try {
+            System.out.print("Digite o número da conta: ");
+            String numero = scanner.nextLine();
+            System.out.println("Saldo: R$ " + String.format("%.2f", contaService.consultarSaldo(numero)));
+        } catch (IllegalArgumentException e) {
+            System.out.println(e.getMessage());
+        }
     }
 
     private void creditarView() {
-        System.out.print("Digite o número da conta: ");
-        String numero = scanner.nextLine();
-        System.out.print("Digite o valor do crédito: ");
-        double valor = scanner.nextDouble();
-        scanner.nextLine();
-
-        System.out.println(controller.creditar(numero, valor));
+        try {
+            System.out.print("Número: ");
+            String numero = scanner.nextLine();
+            System.out.print("Valor: ");
+            double valor = scanner.nextDouble();
+            scanner.nextLine();
+            contaService.creditar(numero, valor);
+            System.out.println("Crédito efetuado.");
+        } catch (IllegalArgumentException e) {
+            System.out.println(e.getMessage());
+        }
     }
 
     private void debitarView() {
-        System.out.print("Digite o número da conta: ");
-        String numero = scanner.nextLine();
-        System.out.print("Digite o valor do débito: ");
-        double valor = scanner.nextDouble();
-        scanner.nextLine();
-
-        System.out.println(controller.debitar(numero, valor));
+        try {
+            System.out.print("Número: ");
+            String numero = scanner.nextLine();
+            System.out.print("Valor: ");
+            double valor = scanner.nextDouble();
+            scanner.nextLine();
+            contaService.debitar(numero, valor);
+            System.out.println("Débito efetuado.");
+        } catch (IllegalArgumentException e) {
+            System.out.println(e.getMessage());
+        }
     }
 
     private void transferirView() {
-        System.out.print("Digite o número da conta de origem: ");
-        String origem = scanner.nextLine();
-        System.out.print("Digite o número da conta de destino: ");
-        String destino = scanner.nextLine();
-        System.out.print("Digite o valor da transferência: ");
-        double valor = scanner.nextDouble();
-        scanner.nextLine();
-
-        System.out.println(controller.transferir(origem, destino, valor));
+        try {
+            System.out.print("Origem: ");
+            String orig = scanner.nextLine();
+            System.out.print("Destino: ");
+            String dest = scanner.nextLine();
+            System.out.print("Valor: ");
+            double valor = scanner.nextDouble();
+            scanner.nextLine();
+            contaService.transferir(orig, dest, valor);
+            System.out.println("Transferência realizada.");
+        } catch (IllegalArgumentException e) {
+            System.out.println(e.getMessage());
+        }
     }
 
     private void renderJurosView() {
-        System.out.print("Informe a taxa de juros (%): ");
-        double taxa = scanner.nextDouble();
-        scanner.nextLine();
-        System.out.println(controller.renderJuros(taxa));
+        try {
+            System.out.print("Taxa (%): ");
+            double taxa = scanner.nextDouble();
+            scanner.nextLine();
+            contaService.renderJuros(taxa);
+            System.out.println("Rendimentos aplicados.");
+        } catch (IllegalArgumentException e) {
+            System.out.println(e.getMessage());
+        }
     }
 
     private void consultarDadosContaView() {
-    System.out.print("Digite o número da conta para consultar os dados: ");
-    String numero = scanner.nextLine();
-    System.out.println(controller.consultarDadosConta(numero));
-}
+        try {
+            System.out.print("Número: ");
+            String numero = scanner.nextLine();
+            Conta conta = contaService.consultarConta(numero);
+
+            String tipo = "Simples";
+            String bonus = "";
+            if (conta instanceof ContaBonus) {
+                tipo = "Bônus";
+                bonus = "\nBônus: " + ((ContaBonus) conta).getPontuacao();
+            } else if (conta instanceof ContaPoupanca) {
+                tipo = "Poupança";
+            }
+
+            System.out.println("--- DADOS --- \nTipo: " + tipo + "\nNúmero: " + conta.getNumero() + "\nSaldo: R$ " + String.format("%.2f", conta.getSaldo()) + bonus);
+        } catch (IllegalArgumentException e) {
+            System.out.println(e.getMessage());
+        }
+    }
 }
