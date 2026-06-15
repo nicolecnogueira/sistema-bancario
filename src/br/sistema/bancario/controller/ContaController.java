@@ -1,130 +1,70 @@
 package br.sistema.bancario.controller;
 
+import br.sistema.bancario.dto.TransferenciaDTO;
 import br.sistema.bancario.model.Conta;
-import br.sistema.bancario.model.ContaBonus;
-import br.sistema.bancario.model.ContaPoupanca;
-import br.sistema.bancario.repository.ContaRepository;
+import br.sistema.bancario.service.ContaService;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
-import java.nio.DoubleBuffer;
-import java.util.List;
-import java.util.Optional;
+import java.util.Map;
 
+@RestController
+@RequestMapping("/banco/conta")
 public class ContaController {
-    private ContaRepository repository;
 
-    public ContaController(ContaRepository repository) {
-        this.repository = repository;
+    private final ContaService contaService;
+
+    public ContaController(ContaService contaService) {
+        this.contaService = contaService;
     }
 
-    public String cadastrarConta(String numero, double saldoInicial) {
-        if (repository.buscarPorNumero(numero).isPresent()) {
-            return "Erro! Já existe conta com número " + numero;
+    @PostMapping("/")
+    public ResponseEntity<?> cadastrarConta(@RequestParam String numero, @RequestParam(defaultValue = "1") int tipo, @RequestParam(defaultValue = "0") double saldoInicial) {
+        if (tipo == 2) {
+            return ResponseEntity.ok(contaService.cadastrarContaBonus(numero));
+        } else if (tipo == 3) {
+            return ResponseEntity.ok(contaService.cadastrarContaPoupanca(numero, saldoInicial));
+        } else {
+            return ResponseEntity.ok(contaService.cadastrarConta(numero));
         }
-
-        Conta novaConta = new Conta(numero, saldoInicial);
-        repository.salvar(novaConta);
-        return "Sucesso! Conta " + numero + " criada com saldo inicial de R$ "
-                + String.format("%.2f", saldoInicial) + "!";
     }
 
-    public String cadastrarContaBonus(String numero, Double saldoInicial) {
-        if (repository.buscarPorNumero(numero).isPresent()) {
-            return "Erro: Conta já cadastrada.";
-        }
-        repository.salvar(new ContaBonus(numero, saldoInicial));
-        return "Sucesso! Conta Bônus " + numero + " criada com 10 pontos.";
+    @GetMapping("/{id}")
+    public ResponseEntity<Conta> consultarConta(@PathVariable("id") String id) {
+        return ResponseEntity.ok(contaService.consultarConta(id));
     }
 
-    public String consultarSaldo(String numero) {
-        Optional<Conta> conta = repository.buscarPorNumero(numero);
-
-        if (conta.isPresent()) {
-            return "Saldo da conta " + numero + ": R$ " + String.format("%.2f", conta.get().getSaldo());
-        }
-
-        return "Erro: Conta não encontrada.";
+    @GetMapping("/{id}/saldo")
+    public ResponseEntity<Map<String, Double>> consultarSaldo(@PathVariable("id") String id) {
+        return ResponseEntity.ok(Map.of("saldo", contaService.consultarSaldo(id)));
     }
 
-    public String creditar(String numero, double valor) {
-        if (valor <= 0) return "Erro: valor deve maior que zero.";
-
-        Optional<Conta> contaOpt = repository.buscarPorNumero(numero);
-        if (contaOpt.isPresent()) {
-            Conta conta = contaOpt.get();
-            conta.creditar(valor);
-
-            if (conta instanceof ContaBonus) {
-                int pontos = (int) (valor / 100);
-                ((ContaBonus) conta).adicionarPontos(pontos);
-            }
-            return "Crédito realizado com sucesso.";
-        }
-
-        return "Erro: Conta não encontrada.";
+    @PutMapping("/{id}/credito")
+    public ResponseEntity<Map<String, String>> creditar(@PathVariable("id") String id, @RequestParam double valor) {
+        contaService.creditar(id, valor);
+        return ResponseEntity.ok(Map.of("mensagem", "Crédito realizado com sucesso."));
     }
 
-    public String debitar(String numero, double valor) {
-        if (valor <= 0) return "Erro: valor deve maior que zero.";
-
-        Optional<Conta> conta = repository.buscarPorNumero(numero);
-
-        if (conta.isPresent()) {
-            if (conta.get().getSaldo() < valor) {
-                return "Erro: Saldo insuficiente.";
-            }
-
-            conta.get().debitar(valor);
-            return "Sucesso! Débito de R$ " + String.format("%.2f", valor) + " realizado.";
-        }
-
-        return "Erro: Conta não encontrada.";
+    @PutMapping("/{id}/debito")
+    public ResponseEntity<Map<String, String>> debitar(@PathVariable("id") String id, @RequestParam double valor) {
+        contaService.debitar(id, valor);
+        return ResponseEntity.ok(Map.of("mensagem", "Débito realizado com sucesso."));
     }
 
-    public String transferir(String origem, String destino, double valor) {
-        if (valor <= 0) return "Erro: valor deve maior que zero.";
-
-        Optional<Conta> contaOrigem = repository.buscarPorNumero(origem);
-        Optional<Conta> contaDestino = repository.buscarPorNumero(destino);
-
-        if (contaOrigem.isEmpty() || contaDestino.isEmpty()) {
-            return "Erro: Uma das contas não existe.";
-        }
-        if (contaOrigem.get().getSaldo() < valor) {
-            return "Erro: Saldo insuficiente na origem.";
-        }
-
-        if (contaOrigem.get().getSaldo() < valor) {
-            return "Erro: Saldo insuficiente na conta de origem.";
-        }
-
-        contaOrigem.get().debitar(valor);
-        contaDestino.get().creditar(valor);
-
-        if (contaDestino.get() instanceof ContaBonus) {
-            int pontos = (int) (valor / 150);
-            ((ContaBonus) contaDestino.get()).adicionarPontos(pontos);
-        }
-
-        return "Transferência realizada.";
+    @PutMapping("/transferencia")
+    public ResponseEntity<Map<String, String>> transferir(@RequestBody TransferenciaDTO dto) {
+        contaService.transferir(dto.getFrom(), dto.getTo(), dto.getAmount());
+        return ResponseEntity.ok(Map.of("mensagem", "Transferência realizada com sucesso."));
     }
 
-    public String cadastrarContaPoupanca(String numero, Double saldoInicial) {
-        if (repository.buscarPorNumero(numero).isPresent()) {
-            return "Erro: Conta já cadastrada.";
-        }
-        repository.salvar(new ContaPoupanca(numero, saldoInicial));
-        return "Sucesso! Conta Poupança " + numero + " criada.";
+    @PutMapping("/rendimento")
+    public ResponseEntity<Map<String, String>> renderJuros(@RequestParam double taxa) {
+        contaService.renderJuros(taxa);
+        return ResponseEntity.ok(Map.of("mensagem", "Rendimentos aplicados com sucesso."));
     }
 
-    public String renderJuros(double taxa) {
-        List<Conta> contas = repository.listarTodas();
-        int aplicadas = 0;
-        for (Conta c : contas) {
-            if (c instanceof ContaPoupanca) {
-                ((ContaPoupanca) c).renderJuros(taxa);
-                aplicadas++;
-            }
-        }
-        return "Juros de " + taxa + "% aplicados em " + aplicadas + " conta(s) poupança.";
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Map<String, String>> handleException(IllegalArgumentException ex) {
+        return ResponseEntity.badRequest().body(Map.of("erro", ex.getMessage()));
     }
 }

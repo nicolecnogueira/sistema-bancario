@@ -1,13 +1,14 @@
 package br.sistema.bancario.model;
 
 public class Conta {
+    public static final double LIMITE_SALDO_NEGATIVO = -1000.0;
+
     private String numero;
     private double saldo;
 
-    public Conta(String numero, double saldoInicial) {
+    public Conta(String numero) {
         this.numero = numero;
         this.saldo = 0.0;
-        this.saldo = saldoInicial;
     }
 
     public String getNumero() {
@@ -26,7 +27,12 @@ public class Conta {
         this.saldo += valor;
     }
 
-    public void debitar(double valor) {
+    public boolean debitar(double valor) {
+        if (this.saldo - valor < LIMITE_SALDO_NEGATIVO) {
+            return false;
+        }
+
         this.saldo -= valor;
+        return true;
     }
 }
