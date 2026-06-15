@@ -259,15 +259,15 @@ class ContaServiceTest {
         }
 
         @Test
-        @DisplayName("Bonificacao Bonus: 1 ponto para cada R$ 200 recebidos")
+        @DisplayName("Bonificacao Bonus: 1 ponto para cada R$ 150 recebidos")
         void transferenciaBonificacaoBonus() {
             service.cadastrarConta("123");
             ContaBonus destino = service.cadastrarContaBonus("200");
             service.creditar("123", 1000.0);
 
-            service.transferir("123", "200", 540.0);
+            service.transferir("123", "200", 300.0);
 
-            assertEquals(540.0, destino.getSaldo(), DELTA);
+            assertEquals(300.0, destino.getSaldo(), DELTA);
             assertEquals(12, destino.getPontuacao());
         }
     }
