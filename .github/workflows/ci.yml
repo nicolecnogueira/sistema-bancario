@@ -1,0 +1,45 @@
+name: Pipeline CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout do código
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - name: Configurar Java JDK
+      uses: actions/setup-java@v3
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+
+    - name: Compilar o Sistema
+      run: |
+        mkdir -p out/production/sistema-bancario
+        javac -cp "lib/*" -d out/production/sistema-bancario src/br/sistema/bancario/model/*.java src/br/sistema/bancario/repository/*.java src/br/sistema/bancario/service/*.java src/br/sistema/bancario/controller/*.java src/br/sistema/bancario/view/*.java src/br/sistema/bancario/App.java
+
+    - name: Compilar e Executar Testes Unitários
+      run: |
+        javac -cp "out/production/sistema-bancario:lib/*" -d out/production/sistema-bancario test/br/sistema/bancario/service/ContaServiceTest.java
+        java -jar lib/junit-platform-console-standalone-1.11.3.jar --class-path out/production/sistema-bancario --select-class br.sistema.bancario.service.ContaServiceTest
+
+    - name: Build da Imagem Docker
+      run: docker build -t sistema-bancario:build-${{ github.run_number }} .
+
+    - name: Criar e Enviar Tag de Build
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        git config --global user.name "GitHub Actions"
+        git config --global user.email "actions@github.com"
+        git tag build-${{ github.run_number }}
+        git push origin build-${{ github.run_number }}
