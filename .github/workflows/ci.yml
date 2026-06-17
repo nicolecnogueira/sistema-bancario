@@ -21,15 +21,20 @@ jobs:
       with:
         java-version: '17'
         distribution: 'temurin'
+        cache: 'maven'
 
     - name: Compilar o Sistema
       run: |
         mkdir -p out/production/sistema-bancario
-        javac -cp "lib/*" -d out/production/sistema-bancario src/br/sistema/bancario/model/*.java src/br/sistema/bancario/repository/*.java src/br/sistema/bancario/service/*.java src/br/sistema/bancario/controller/*.java src/br/sistema/bancario/view/*.java src/br/sistema/bancario/App.java
+        
+        mvn dependency:copy-dependencies -DoutputDirectory=lib/spring
+        
+        javac -cp "lib/*:lib/spring/*" -d out/production/sistema-bancario src/br/sistema/bancario/dto/*.json src/br/sistema/bancario/dto/*.java 2>/dev/null || true
+        javac -cp "lib/*:lib/spring/*:out/production/sistema-bancario" -d out/production/sistema-bancario src/br/sistema/bancario/model/*.java src/br/sistema/bancario/repository/*.java src/br/sistema/bancario/service/*.java src/br/sistema/bancario/controller/*.java src/br/sistema/bancario/view/*.java src/br/sistema/bancario/App.java
 
     - name: Compilar e Executar Testes Unitários
       run: |
-        javac -cp "out/production/sistema-bancario:lib/*" -d out/production/sistema-bancario test/br/sistema/bancario/service/ContaServiceTest.java
+        javac -cp "out/production/sistema-bancario:lib/*:lib/spring/*" -d out/production/sistema-bancario test/br/sistema/bancario/service/ContaServiceTest.java
         java -jar lib/junit-platform-console-standalone-1.11.3.jar --class-path out/production/sistema-bancario --select-class br.sistema.bancario.service.ContaServiceTest
 
     - name: Build da Imagem Docker
@@ -42,4 +47,4 @@ jobs:
         git config --global user.name "GitHub Actions"
         git config --global user.email "actions@github.com"
         git tag build-${{ github.run_number }}
-        git push origin build-${{ github.run_number }}
+        git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git build-${{ github.run_number }}
