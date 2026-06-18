@@ -2,7 +2,6 @@ FROM eclipse-temurin:17-jdk-alpine
 
 WORKDIR /app
 
-COPY out/production/sistema-bancario/ /app/bin/
-COPY lib/ /app/lib/
+COPY target/*.jar app.jar
 
-ENTRYPOINT ["java", "-cp", "/app/bin/:/app/lib/*", "br.sistema.bancario.App"]
+ENTRYPOINT ["java", "-jar", "/app/app.jar"]
