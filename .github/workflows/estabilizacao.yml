@@ -70,6 +70,15 @@ jobs:
     - name: Resolver dependências, compilar e executar testes
       run: mvn -B verify
 
+    - name: Quality - análise estática (Checkstyle)
+      run: mvn -B checkstyle:check
+
+    - name: Empacotar e publicar artefato (.zip da versão)
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ steps.tag.outputs.nome }}
+        path: target/*.jar
+
     - name: Criar e enviar a tag rc
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
