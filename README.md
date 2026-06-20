@@ -9,6 +9,7 @@ Projeto desenvolvido para a disciplina de Gerência de Configuração e Mudança
 ## Stack de Desenvolvimento
 * **Linguagem de Programação:** Java
 * **Framework:** Spring Boot
+* **Gerenciador de Depêndencias: Maven
 
 ## Como Executar o Sistema
 
