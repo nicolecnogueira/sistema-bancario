@@ -1,0 +1,104 @@
+name: Pipeline de Produção (Release)
+
+on:
+  pull_request:
+    types: [ closed ]
+    branches: [ production ]
+
+jobs:
+  release:
+    if: >-
+      github.event.pull_request.merged == true &&
+      (github.event.pull_request.head.ref == 'staging' ||
+       startsWith(github.event.pull_request.head.ref, 'hotfix') ||
+       contains(github.event.pull_request.head.ref, '-hotfix'))
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+    - name: Checkout do código
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Buscar todas as tags
+      run: git fetch --tags --force
+
+    - name: Calcular a próxima tag rel
+      id: tag
+      run: |
+        set -euo pipefail
+        ORIGEM="${{ github.event.pull_request.head.ref }}"
+
+        MAIOR_REL="$(git tag -l 'rel-*' | sed 's/^rel-//' | sort -V | tail -n1)"
+
+        if [ -z "$MAIOR_REL" ]; then
+          X=1; Y=0
+        else
+          X="$(echo "$MAIOR_REL" | cut -d. -f1)"
+          Y="$(echo "$MAIOR_REL" | cut -d. -f2)"
+        fi
+
+        if [ "$ORIGEM" = "staging" ]; then
+          NOVA_TAG="rel-${X}.$((Y + 1))"
+          TIPO="Liberação de nova versão (origem: staging)"
+        else
+          MAIOR_Z="$(git tag -l "rel-${X}.${Y}.*" | sed -E "s/^rel-${X}\.${Y}\.//" | sort -n | tail -n1)"
+          if [ -z "${MAIOR_Z}" ]; then
+            NOVO_Z=1
+          else
+            NOVO_Z=$((MAIOR_Z + 1))
+          fi
+          NOVA_TAG="rel-${X}.${Y}.${NOVO_Z}"
+          TIPO="Correção em produção / Hotfix (origem: ${ORIGEM})"
+        fi
+
+        echo "nome=${NOVA_TAG}" >> "$GITHUB_OUTPUT"
+        echo "### ${TIPO}" >> "$GITHUB_STEP_SUMMARY"
+        echo "Maior rel atual: \`${MAIOR_REL:-nenhuma}\` → nova tag: \`${NOVA_TAG}\`" >> "$GITHUB_STEP_SUMMARY"
+        echo "Nova tag calculada: ${NOVA_TAG}"
+
+    - name: Configurar Java JDK
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        cache: 'maven'
+
+    - name: Resolver dependências, compilar e executar testes
+      run: mvn -B verify
+
+    - name: Quality - análise estática (Checkstyle)
+      run: mvn -B checkstyle:check
+
+    - name: Empacotar e publicar artefato (.zip da versão)
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ steps.tag.outputs.nome }}
+        path: target/*.jar
+
+    - name: Login no Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+    - name: Build e push da imagem para o Docker Hub
+      uses: docker/build-push-action@v6
+      with:
+        context: .
+        file: ./dockerfile
+        push: true
+        tags: |
+          ${{ secrets.DOCKERHUB_USERNAME }}/sistema-bancario:${{ steps.tag.outputs.nome }}
+          ${{ secrets.DOCKERHUB_USERNAME }}/sistema-bancario:latest
+
+    - name: Criar e enviar a tag rel
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        git config --global user.name "GitHub Actions"
+        git config --global user.email "actions@github.com"
+        git tag "${{ steps.tag.outputs.nome }}"
+        git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git "${{ steps.tag.outputs.nome }}"
