@@ -1,13 +1,13 @@
 package br.sistema.bancario.service;
 
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+
 import br.sistema.bancario.model.Conta;
 import br.sistema.bancario.model.ContaBonus;
 import br.sistema.bancario.model.ContaPoupanca;
 import br.sistema.bancario.repository.ContaRepository;
-
-import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 public class ContaService {
