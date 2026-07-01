@@ -2,10 +2,13 @@ package br.sistema.bancario.repository;
 
 import br.sistema.bancario.model.Conta;
 
+import org.springframework.stereotype.Repository;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+@Repository
 public class ContaRepository {
     private final List<Conta> contas = new ArrayList<>();
 
