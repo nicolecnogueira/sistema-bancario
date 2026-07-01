@@ -1,11 +1,11 @@
 package br.sistema.bancario.view;
 
+import java.util.Scanner;
+
 import br.sistema.bancario.model.Conta;
 import br.sistema.bancario.model.ContaBonus;
 import br.sistema.bancario.model.ContaPoupanca;
 import br.sistema.bancario.service.ContaService;
-
-import java.util.Scanner;
 
 public class ConsoleView {
     private final ContaService contaService;
@@ -19,7 +19,7 @@ public class ConsoleView {
     public void iniciar() {
         int opcao = -1;
         while (opcao != 0) {
-            System.out.println("\n=== SISTEMA BANCÁRIO ===");
+            System.out.println("\n==== SISTEMA BANCÁRIO ====");
             System.out.println("1. Cadastrar Conta");
             System.out.println("2. Consultar Saldo");
             System.out.println("3. Crédito");
