@@ -1,0 +1,35 @@
+# formato "#NUM_ISSUE - MENSAGEM" (a issue #NUM precisa existir no GitHub)
+MSG_FILE="$1"
+REPO="nicolecnogueira/sistema-bancario"
+
+# 1a linha "real" (ignora comentarios ';' e linhas em branco)
+COMMIT_MSG=$(grep -vE '^[[:space:]]*;' "$MSG_FILE" | sed '/^[[:space:]]*$/d' | head -n1)
+
+# deixa passar merges/reverts (mensagem automatica)
+if [[ "$COMMIT_MSG" =~ ^(Merge|Revert) ]]; then exit 0; fi
+
+# Verificacao 1 — formato (aceita hifen "-" ou travessao "–")
+if ! [[ "$COMMIT_MSG" =~ ^#[0-9]+[[:space:]]+(-|–)[[:space:]]+.+ ]]; then
+  echo "==============================================================="
+  echo "ERRO: formato invalido. Use:  #NUM_ISSUE - Mensagem"
+  echo "Ex.: #53 - Corrige validacao da tela principal"
+  echo "Sua mensagem: $COMMIT_MSG"
+  echo "==============================================================="
+  exit 1
+fi
+
+# Verificacao 2 — issue existe? (repo PUBLICO: sem token)
+ISSUE_NUM=$(echo "$COMMIT_MSG" | grep -oE '^#[0-9]+' | tr -d '#')
+HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+  -H "Accept: application/vnd.github+json" \
+  "https://api.github.com/repos/$REPO/issues/$ISSUE_NUM")
+if [ "$HTTP_STATUS" != "200" ]; then
+  echo "==============================================================="
+  echo "ERRO: Issue #$ISSUE_NUM nao encontrada em $REPO (HTTP $HTTP_STATUS)."
+  echo "Crie a issue no GitHub antes de commitar."
+  echo "==============================================================="
+  exit 1
+fi
+
+echo "Commit validado: formato OK e issue #$ISSUE_NUM existe."
+exit 0

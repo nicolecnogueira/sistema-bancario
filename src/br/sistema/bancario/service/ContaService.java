@@ -5,8 +5,11 @@ import br.sistema.bancario.model.ContaBonus;
 import br.sistema.bancario.model.ContaPoupanca;
 import br.sistema.bancario.repository.ContaRepository;
 
+import org.springframework.stereotype.Service;
+
 import java.util.List;
 
+@Service
 public class ContaService {
     private final ContaRepository repository;
 

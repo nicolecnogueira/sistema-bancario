@@ -1,0 +1,89 @@
+name: Pipeline de Estabilização
+
+on:
+  pull_request:
+    types: [ closed ]
+    branches: [ staging ]
+
+jobs:
+  estabilizacao:
+
+    if: >-
+      github.event.pull_request.merged == true &&
+      (github.event.pull_request.head.ref == 'main' ||
+       startsWith(github.event.pull_request.head.ref, 'bugfix') ||
+       contains(github.event.pull_request.head.ref, '-bugfix'))
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+    - name: Checkout do código
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Buscar todas as tags
+      run: git fetch --tags --force
+
+    - name: Calcular a próxima tag rc
+      id: tag
+      run: |
+        set -euo pipefail
+        ORIGEM="${{ github.event.pull_request.head.ref }}"
+
+        MAIOR_RC="$(git tag -l 'rc-*' | sed 's/^rc-//' | sort -V | tail -n1)"
+
+        if [ -z "$MAIOR_RC" ]; then
+          X=1; Y=0
+        else
+          X="$(echo "$MAIOR_RC" | cut -d. -f1)"
+          Y="$(echo "$MAIOR_RC" | cut -d. -f2)"
+        fi
+
+        if [ "$ORIGEM" = "main" ]; then
+          NOVA_TAG="rc-${X}.$((Y + 1))"
+          TIPO="Início de Estabilização (origem: main)"
+        else
+          MAIOR_Z="$(git tag -l "rc-${X}.${Y}.*" | sed -E "s/^rc-${X}\.${Y}\.//" | sort -n | tail -n1)"
+          if [ -z "${MAIOR_Z}" ]; then
+            NOVO_Z=1           
+          else
+            NOVO_Z=$((MAIOR_Z + 1))
+          fi
+          NOVA_TAG="rc-${X}.${Y}.${NOVO_Z}"
+          TIPO="Bugfix da Estabilização (origem: ${ORIGEM})"
+        fi
+
+        echo "nome=${NOVA_TAG}" >> "$GITHUB_OUTPUT"
+        echo "### ${TIPO}" >> "$GITHUB_STEP_SUMMARY"
+        echo "Maior rc atual: \`${MAIOR_RC:-nenhuma}\` → nova tag: \`${NOVA_TAG}\`" >> "$GITHUB_STEP_SUMMARY"
+        echo "Nova tag calculada: ${NOVA_TAG}"
+
+    - name: Configurar Java JDK
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        cache: 'maven'
+
+    - name: Resolver dependências, compilar e executar testes
+      run: mvn -B verify
+
+    - name: Quality - análise estática (Checkstyle)
+      run: mvn -B checkstyle:check
+
+    - name: Empacotar e publicar artefato (.zip da versão)
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ steps.tag.outputs.nome }}
+        path: target/*.jar
+
+    - name: Criar e enviar a tag rc
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        git config --global user.name "GitHub Actions"
+        git config --global user.email "actions@github.com"
+        git tag "${{ steps.tag.outputs.nome }}"
+        git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git "${{ steps.tag.outputs.nome }}"

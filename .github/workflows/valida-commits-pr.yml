@@ -1,0 +1,44 @@
+name: Validar Commits do PR
+
+on:
+  pull_request:
+    types: [ opened, synchronize, reopened ]
+
+jobs:
+  validar-commits:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verificar mensagens e issues
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -uo pipefail
+          COMMITS=$(git log --no-merges --pretty=format:"%s" \
+            "origin/${{ github.base_ref }}..origin/${{ github.head_ref }}")
+          [ -z "$COMMITS" ] && { echo "Nenhum commit (fora merges) a validar."; exit 0; }
+
+          FALHOU=0
+          while IFS= read -r MSG; do
+            [ -z "$MSG" ] && continue
+            echo "Analisando: $MSG"
+            if ! [[ "$MSG" =~ ^#[0-9]+[[:space:]]+(-|–)[[:space:]]+.+ ]]; then
+              echo "::error::Formato invalido: '$MSG' (use '#NUM - Mensagem')"; FALHOU=1; continue
+            fi
+            ISSUE_NUM=$(echo "$MSG" | grep -oE '^#[0-9]+' | tr -d '#')
+            ST=$(curl -s -o /dev/null -w "%{http_code}" \
+              -H "Authorization: Bearer $GITHUB_TOKEN" \
+              -H "Accept: application/vnd.github+json" \
+              "https://api.github.com/repos/${{ github.repository }}/issues/$ISSUE_NUM")
+            if [ "$ST" != "200" ]; then
+              echo "::error::Issue #$ISSUE_NUM nao existe (HTTP $ST)"; FALHOU=1; continue
+            fi
+            echo "OK: '$MSG'"
+          done <<< "$COMMITS"
+
+          [ "$FALHOU" -ne 0 ] && { echo "Validacao falhou."; exit 1; }
+          echo "Todos os commits validados."
